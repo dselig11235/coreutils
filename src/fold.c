@@ -90,22 +90,33 @@ Wrap input lines in each FILE, writing to standard output.\n\
    printing C will move the cursor to.
    The first column is 0. */
 
+bool is_escape_sequence=false;
 static size_t
 adjust_column (size_t column, char c)
 {
   if (!count_bytes)
     {
-      if (c == '\b')
-        {
-          if (column > 0)
-            column--;
+      if (is_escape_sequence) {
+          if(c == 'm') {
+              is_escape_sequence = false;
+          }
+      }
+
+      else {
+          if (c == '\b')
+            {
+              if (column > 0)
+                column--;
+            }
+          else if (c == '\r')
+            column = 0;
+          else if (c == '\t')
+            column += TAB_WIDTH - column % TAB_WIDTH;
+          else if (c == '\033')
+              is_escape_sequence = true;
+          else /* if (isprint (c)) */
+            column++;
         }
-      else if (c == '\r')
-        column = 0;
-      else if (c == '\t')
-        column += TAB_WIDTH - column % TAB_WIDTH;
-      else /* if (isprint (c)) */
-        column++;
     }
   else
     column++;
